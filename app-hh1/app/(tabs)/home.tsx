@@ -24,7 +24,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.pantalla} edges={['top']}>
       <CoffeeBeans />
 
-      <Text style={styles.titulo}>¡Bienvenido a tu café!</Text>
+      <Text style={styles.titulo}>¡Bienvenido a Cota!</Text>
 
       {opcion && (
         <Sticker contentStyle={styles.tarjeta}>
@@ -37,11 +37,15 @@ export default function HomeScreen() {
       )}
 
       <Sticker
-        onPress={() => router.replace('/')}
+        onPress={() => router.push('/tareas/nueva')}
         color={Cafe.caramelo}
         style={styles.boton}
         contentStyle={styles.botonContenido}>
-        <Text style={styles.botonTexto}>Cambiar mi ánimo</Text>
+        <Text style={styles.botonTexto}>Nueva tarea</Text>
+      </Sticker>
+
+      <Sticker onPress={() => router.replace('/')} style={styles.boton} contentStyle={styles.botonContenido}>
+        <Text style={[styles.botonTexto, styles.botonSecundario]}>Cambiar mi ánimo</Text>
       </Sticker>
     </SafeAreaView>
   );
@@ -94,5 +98,8 @@ const styles = StyleSheet.create({
     fontFamily: Tipografia.textoFuerte,
     fontSize: 17,
     color: Cafe.espuma,
+  },
+  botonSecundario: {
+    color: Cafe.espresso,
   },
 });

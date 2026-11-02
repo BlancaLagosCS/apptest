@@ -37,4 +37,9 @@ class Cliente extends Authenticatable
     {
         return $this->hasMany(RegistroEmocion::class, 'ID_Usu', 'ID_Cli');
     }
+
+    public function tareas(): HasMany
+    {
+        return $this->hasMany(Tarea::class, 'ID_Cli', 'ID_Cli');
+    }
 }

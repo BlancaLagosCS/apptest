@@ -52,6 +52,8 @@ export default function PreLandingScreen() {
       <CoffeeBeans />
 
       <Animated.View entering={FadeInUp.duration(500)} style={styles.encabezado}>
+        <Text style={styles.marca}>Cota</Text>
+        <Text style={styles.slogan}>tu Compañero de Tareas</Text>
         <Text style={styles.titulo}>¿Cuál es tu estado de ánimo?</Text>
         <Text style={styles.subtitulo}>Elige la taza que más se parece a tu día</Text>
       </Animated.View>
@@ -93,6 +95,17 @@ const styles = StyleSheet.create({
   encabezado: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  marca: {
+    fontFamily: Tipografia.titulo,
+    fontSize: 44,
+    color: Cafe.caramelo,
+  },
+  slogan: {
+    fontFamily: Tipografia.textoFuerte,
+    fontSize: 15,
+    color: Cafe.cafe,
+    marginBottom: 28,
   },
   titulo: {
     fontFamily: Tipografia.titulo,

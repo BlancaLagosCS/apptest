@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "app-hh1",
+    "name": "Cota",
     "slug": "app-hh1",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -33,7 +33,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#FFF8EE"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -61,6 +61,20 @@ class EmocionesTest extends TestCase
         ]);
     }
 
+    public function test_convierte_la_fecha_utc_a_la_hora_de_chile(): void
+    {
+        config(['app.timezone' => 'America/Santiago']);
+        Sanctum::actingAs($this->crearCliente());
+
+        $this->postJson('/api/registro-emociones', [
+            'ID_Emo' => 2,
+            'Date_Reg_Emo' => '2026-11-01T12:00:00.000Z',
+        ])->assertCreated();
+
+        // En noviembre Chile está en horario de verano (UTC-3).
+        $this->assertDatabaseHas('registro_emociones', ['Date_Reg_Emo' => '2026-11-01 09:00:00']);
+    }
+
     public function test_rechaza_emocion_inexistente(): void
     {
         Sanctum::actingAs($this->crearCliente());

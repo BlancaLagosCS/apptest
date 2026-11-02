@@ -45,3 +45,26 @@ export async function getEmociones(): Promise<TipEmo[]> {
 export async function registrarEmocion(idEmo: number, fecha: string): Promise<void> {
   await api.post('/registro-emociones', { ID_Emo: idEmo, Date_Reg_Emo: fecha });
 }
+
+/** 1 = Fácil, 2 = Intermedio, 3 = Difícil */
+export type Dificultad = 1 | 2 | 3;
+
+export type NuevaTarea = {
+  Nom_Tar: string;
+  /** Formato Y-m-d H:i:s en hora local, o null. */
+  Inicio: string | null;
+  Deadline: string | null;
+  Dificultad: Dificultad;
+};
+
+export type Tarea = NuevaTarea & {
+  ID_Tar: number;
+  ID_Cli: number;
+  ID_Reg_Emo: number | null;
+  Hora_Reg: string;
+};
+
+export async function crearTarea(tarea: NuevaTarea): Promise<Tarea> {
+  const { data } = await api.post<Tarea>('/tareas', tarea);
+  return data;
+}
