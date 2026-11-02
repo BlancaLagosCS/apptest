@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\EmocionController;
+use App\Http\Controllers\Api\PuntoController;
 use App\Http\Controllers\Api\RegistroEmocionController;
 use App\Http\Controllers\Api\TareaController;
 use Illuminate\Http\Request;
@@ -16,4 +17,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/registro-emociones', [RegistroEmocionController::class, 'store']);
     Route::apiResource('tareas', TareaController::class);
     Route::patch('/tareas/{tarea}/estado', [TareaController::class, 'estado']);
+    Route::get('/puntos', [PuntoController::class, 'show']);
 });

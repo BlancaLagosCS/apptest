@@ -4,8 +4,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Aviso, useAviso } from '@/components/cafe/aviso';
 import { CoffeeBeans } from '@/components/cafe/coffee-beans';
 import { ConfirmDialog } from '@/components/cafe/confirm-dialog';
+import { GranosGanados } from '@/components/cafe/granos-ganados';
 import { IconButton } from '@/components/cafe/icon-button';
 import { CheckIcon, CrossIcon } from '@/components/cafe/icons';
 import { ScreenHeader } from '@/components/cafe/screen-header';
@@ -24,7 +26,8 @@ export default function TusTareasScreen() {
   const [realizadas, setRealizadas] = useState<Tarea[]>([]);
   const [carga, setCarga] = useState<Carga>('cargando');
   const [aEliminar, setAEliminar] = useState<Tarea | null>(null);
-  const [aviso, setAviso] = useState<string | null>(null);
+  const { aviso, mostrar: mostrarAviso } = useAviso(3500);
+  const [granos, setGranos] = useState<{ cantidad: number; vez: number } | null>(null);
 
   const cargar = useCallback(() => {
     let activa = true;
@@ -48,10 +51,10 @@ export default function TusTareasScreen() {
   useFocusEffect(cargar);
 
   useEffect(() => {
-    if (!aviso) return;
-    const timer = setTimeout(() => setAviso(null), 3500);
+    if (!granos) return;
+    const timer = setTimeout(() => setGranos(null), 1800);
     return () => clearTimeout(timer);
-  }, [aviso]);
+  }, [granos]);
 
   async function marcarRealizada(tarea: Tarea) {
     // Se mueve de inmediato; si el backend falla, vuelve a su lugar.
@@ -62,10 +65,14 @@ export default function TusTareasScreen() {
     try {
       const actualizada = await cambiarEstadoTarea(tarea.ID_Tar, 'Realizada');
       setRealizadas((lista) => lista.map((t) => (t.ID_Tar === actualizada.ID_Tar ? actualizada : t)));
+      if (actualizada.Cant_Pun) {
+        const cantidad = actualizada.Cant_Pun;
+        setGranos((anterior) => ({ cantidad, vez: (anterior?.vez ?? 0) + 1 }));
+      }
     } catch {
       setRealizadas((lista) => lista.filter((t) => t.ID_Tar !== tarea.ID_Tar));
       setPendientes((lista) => ordenarPorDeadline([...lista, tarea]));
-      setAviso('No pudimos marcar la tarea como realizada. Inténtalo de nuevo.');
+      mostrarAviso('No pudimos marcar la tarea como realizada. Inténtalo de nuevo.');
     }
   }
 
@@ -79,7 +86,7 @@ export default function TusTareasScreen() {
       await cambiarEstadoTarea(tarea.ID_Tar, 'Eliminada');
     } catch {
       setPendientes((lista) => ordenarPorDeadline([...lista, tarea]));
-      setAviso('No pudimos eliminar la tarea. Inténtalo de nuevo.');
+      mostrarAviso('No pudimos eliminar la tarea. Inténtalo de nuevo.');
     }
   }
 
@@ -159,11 +166,8 @@ export default function TusTareasScreen() {
         </View>
       )}
 
-      {aviso && (
-        <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.aviso} pointerEvents="none">
-          <Text style={styles.avisoTexto}>{aviso}</Text>
-        </Animated.View>
-      )}
+      <GranosGanados cantidad={granos?.cantidad ?? null} vez={granos?.vez ?? 0} />
+      <Aviso texto={aviso} tono="error" />
 
       <ConfirmDialog
         visible={aEliminar !== null}
@@ -327,22 +331,5 @@ const styles = StyleSheet.create({
     fontFamily: Tipografia.textoFuerte,
     fontSize: 15,
     color: Cafe.espuma,
-  },
-  aviso: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 32,
-    backgroundColor: Cafe.espuma,
-    borderWidth: 2,
-    borderColor: Cafe.burdeo,
-    borderRadius: 16,
-    padding: 12,
-  },
-  avisoTexto: {
-    fontFamily: Tipografia.texto,
-    fontSize: 14,
-    color: Cafe.burdeo,
-    textAlign: 'center',
   },
 });

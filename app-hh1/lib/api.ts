@@ -74,9 +74,9 @@ export async function crearTarea(tarea: NuevaTarea): Promise<Tarea> {
   return data;
 }
 
-/** Pendientes ordenadas por deadline (las sin fecha al final). */
-export async function listarPendientes(): Promise<Tarea[]> {
-  const { data } = await api.get<Tarea[]>('/tareas', { params: { estado: 'Pendiente' } });
+/** Pendientes ordenadas por deadline (las sin fecha al final); limite trae solo las primeras. */
+export async function listarPendientes(limite?: number): Promise<Tarea[]> {
+  const { data } = await api.get<Tarea[]>('/tareas', { params: { estado: 'Pendiente', limite } });
   return data;
 }
 
@@ -85,7 +85,22 @@ export async function listarRealizadasHoy(): Promise<Tarea[]> {
   return data;
 }
 
-export async function cambiarEstadoTarea(id: number, estado: EstadoTarea): Promise<Tarea> {
-  const { data } = await api.patch<Tarea>(`/tareas/${id}/estado`, { Est_Tar: estado });
+/** Al marcarla Realizada también llegan los granos ganados (Cant_Pun) y el nuevo total (Cont_Tot). */
+export type TareaActualizada = Tarea & { Cant_Pun?: number; Cont_Tot?: number };
+
+export async function cambiarEstadoTarea(id: number, estado: EstadoTarea): Promise<TareaActualizada> {
+  const { data } = await api.patch<TareaActualizada>(`/tareas/${id}/estado`, { Est_Tar: estado });
+  return data;
+}
+
+export type Puntos = {
+  /** Granos disponibles. */
+  Cont_Tot: number;
+  /** Granos ganados en total (no baja al gastar). */
+  Cont_Hist: number;
+};
+
+export async function getPuntos(): Promise<Puntos> {
+  const { data } = await api.get<Puntos>('/puntos');
   return data;
 }

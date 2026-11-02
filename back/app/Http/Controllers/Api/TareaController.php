@@ -11,14 +11,15 @@ use Illuminate\Validation\Rule;
 class TareaController extends Controller
 {
     /**
-     * Filtros opcionales: estado=Pendiente|Realizada y fecha=hoy (realizadas hoy).
-     * Las tareas eliminadas nunca se listan.
+     * Filtros opcionales: estado=Pendiente|Realizada, fecha=hoy (realizadas hoy)
+     * y limite=N (las primeras N según el orden). Las tareas eliminadas nunca se listan.
      */
     public function index(Request $request): JsonResponse
     {
         $filtros = $request->validate([
             'estado' => ['sometimes', Rule::in([Tarea::ESTADO_PENDIENTE, Tarea::ESTADO_REALIZADA])],
             'fecha' => ['sometimes', Rule::in(['hoy'])],
+            'limite' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
         $consulta = $request->user()->tareas()->where('Est_Tar', '!=', Tarea::ESTADO_ELIMINADA);
@@ -36,6 +37,10 @@ class TareaController extends Controller
         } else {
             // Las de deadline más cercano primero; las sin fecha al final.
             $consulta->orderByRaw('Deadline IS NULL')->orderBy('Deadline')->orderBy('ID_Tar');
+        }
+
+        if (isset($filtros['limite'])) {
+            $consulta->limit((int) $filtros['limite']);
         }
 
         return response()->json($consulta->get());
@@ -83,9 +88,12 @@ class TareaController extends Controller
         ]);
 
         $modelo = $this->buscar($request, $tarea);
-        $modelo->cambiarEstado($data['Est_Tar']);
+        $punto = $modelo->cambiarEstado($data['Est_Tar']);
 
-        return response()->json($modelo);
+        // Si la tarea sumó granos, la app recibe cuántos y el nuevo total.
+        return response()->json($punto
+            ? [...$modelo->toArray(), 'Cant_Pun' => $punto->Cant_Pun, 'Cont_Tot' => $punto->Cont_Tot]
+            : $modelo);
     }
 
     /**

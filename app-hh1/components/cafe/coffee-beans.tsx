@@ -1,7 +1,6 @@
 import { DimensionValue, StyleSheet, View } from 'react-native';
-import Svg, { Ellipse, Path } from 'react-native-svg';
 
-import { Cafe } from '@/constants/theme';
+import { CoffeeBean } from '@/components/cafe/coffee-bean';
 
 type Grano = {
   posicion: { top?: DimensionValue; bottom?: DimensionValue; left?: DimensionValue; right?: DimensionValue };
@@ -25,10 +24,7 @@ export function CoffeeBeans() {
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {GRANOS.map(({ posicion, rotacion, tamano }, i) => (
         <View key={i} style={[styles.grano, posicion, { transform: [{ rotate: `${rotacion}deg` }] }]}>
-          <Svg width={tamano} height={tamano * 1.3} viewBox="0 0 20 26">
-            <Ellipse cx={10} cy={13} rx={8.5} ry={11.5} fill={Cafe.latte} stroke={Cafe.caramelo} strokeWidth={1.8} />
-            <Path d="M10 3 C6 9 14 17 10 23" fill="none" stroke={Cafe.caramelo} strokeWidth={1.8} strokeLinecap="round" />
-          </Svg>
+          <CoffeeBean size={tamano} />
         </View>
       ))}
     </View>

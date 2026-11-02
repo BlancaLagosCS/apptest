@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class Tarea extends Model
 {
@@ -39,13 +41,29 @@ class Tarea extends Model
 
     /**
      * Cambia el estado; Fecha_Real registra cuándo se realizó la tarea.
+     * Al realizarla suma tantos granos como su dificultad y devuelve ese movimiento.
+     * Una tarea realizada ya no puede cambiar de estado (así no se ganan granos dos veces).
      */
-    public function cambiarEstado(string $estado): void
+    public function cambiarEstado(string $estado): ?Punto
     {
-        $this->update([
-            'Est_Tar' => $estado,
-            'Fecha_Real' => $estado === self::ESTADO_REALIZADA ? now() : null,
-        ]);
+        return DB::transaction(function () use ($estado) {
+            $actual = self::whereKey($this->ID_Tar)->lockForUpdate()->value('Est_Tar');
+
+            if ($actual === self::ESTADO_REALIZADA) {
+                throw ValidationException::withMessages([
+                    'Est_Tar' => 'Esta tarea ya fue realizada y no se puede cambiar.',
+                ]);
+            }
+
+            $this->update([
+                'Est_Tar' => $estado,
+                'Fecha_Real' => $estado === self::ESTADO_REALIZADA ? now() : null,
+            ]);
+
+            return $estado === self::ESTADO_REALIZADA
+                ? Punto::registrar($this->cliente, $this->Dificultad, $this)
+                : null;
+        });
     }
 
     public function cliente(): BelongsTo

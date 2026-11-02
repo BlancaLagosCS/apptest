@@ -42,4 +42,9 @@ class Cliente extends Authenticatable
     {
         return $this->hasMany(Tarea::class, 'ID_Cli', 'ID_Cli');
     }
+
+    public function puntos(): HasMany
+    {
+        return $this->hasMany(Punto::class, 'ID_Cli', 'ID_Cli');
+    }
 }

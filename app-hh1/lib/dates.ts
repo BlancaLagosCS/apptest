@@ -26,9 +26,14 @@ const MS_DIA = 24 * 60 * 60 * 1000;
 
 /**
  * Texto de la fecha límite: "hoy", "mañana", "ayer" o DD/MM.
+ * En formato corto (tabla del landing): "hoy", "mañ", "ayer" o solo DD.
  * vencida es true si el deadline ya pasó (incluye hoy con la hora pasada).
  */
-export function etiquetaDeadline(deadline: string | null, ahora = new Date()): { texto: string; vencida: boolean } | null {
+export function etiquetaDeadline(
+  deadline: string | null,
+  ahora = new Date(),
+  formato: 'largo' | 'corto' = 'largo'
+): { texto: string; vencida: boolean } | null {
   if (!deadline) {
     return null;
   }
@@ -38,14 +43,17 @@ export function etiquetaDeadline(deadline: string | null, ahora = new Date()): {
   const diaHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
   const diferencia = Math.round((diaFecha.getTime() - diaHoy.getTime()) / MS_DIA);
 
+  const corto = formato === 'corto';
   const texto =
     diferencia === 0
       ? 'hoy'
       : diferencia === 1
-        ? 'mañana'
+        ? corto ? 'mañ' : 'mañana'
         : diferencia === -1
           ? 'ayer'
-          : `${dosDigitos(fecha.getDate())}/${dosDigitos(fecha.getMonth() + 1)}`;
+          : corto
+            ? dosDigitos(fecha.getDate())
+            : `${dosDigitos(fecha.getDate())}/${dosDigitos(fecha.getMonth() + 1)}`;
 
   return { texto, vencida: fecha.getTime() < ahora.getTime() };
 }
