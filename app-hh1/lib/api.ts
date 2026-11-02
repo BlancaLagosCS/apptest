@@ -1,0 +1,47 @@
+import axios from 'axios';
+
+import { getToken } from '@/lib/session';
+
+/**
+ * URL pública del backend Laravel expuesta con Ngrok (ver .env.example).
+ */
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL || API_URL.includes('tu-subdominio')) {
+  console.warn(
+    'EXPO_PUBLIC_API_URL no está configurada: copia la URL de Ngrok en app-hh1/.env.local y reinicia Expo con "npx expo start -c".'
+  );
+}
+
+export const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  timeout: 8000,
+  headers: {
+    Accept: 'application/json',
+    // Evita la página de advertencia que Ngrok muestra en el plan gratuito.
+    'ngrok-skip-browser-warning': 'true',
+  },
+});
+
+api.interceptors.request.use(async (config) => {
+  const token = await getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export type TipEmo = {
+  ID_Emo: number;
+  Nom_Emo: string;
+  Dificultad: number;
+};
+
+export async function getEmociones(): Promise<TipEmo[]> {
+  const { data } = await api.get<TipEmo[]>('/emociones');
+  return data;
+}
+
+export async function registrarEmocion(idEmo: number, fecha: string): Promise<void> {
+  await api.post('/registro-emociones', { ID_Emo: idEmo, Date_Reg_Emo: fecha });
+}

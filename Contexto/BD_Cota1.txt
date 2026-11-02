@@ -1,0 +1,29 @@
+Tipo_Entidad (ID_Ent, Tip_Ent, Nom_Ent)
+
+Registro_Compras (ID_RegCom, ID_Ent(FK), Pago, Cantidad, Fecha, Vigencia, Medio_pago, ID_tipPlan(FK), ID_Cli(FK))
+
+Tipo_Plan (ID_tipPlan, Nom_Plan, Features)
+
+Plan (ID_Plan, ID_tipPlan(FK), Plazo, Est_Plan)
+
+Cliente (ID_Cli, ID_Plan(FK), ID_Masc(FK), Nom_Cli, Edad, Nivel, Clave_Cli, Email, ID_Gen(FK))
+
+Género (ID_Gen, Nom_Gen)
+
+Mascota (ID_Masc, ID_Cli(FK), Nom_Masc, Nivel, Skin, Est_Masc, Dialogos)
+
+Tip_Emo (ID_Emo(FK), Nom_Emo, Dificultad)
+
+Registro_Emociones (ID_Reg_Emo, ID_Emo(FK), ID_Usu, Date_Reg_Emo)
+
+Tareas (ID_Tar, ID_Cli(FK), ID_Reg_Emo(FK), Nom_Tar, Hora_Reg, Inicio, Deadline, Dificultad)
+
+Reflexiones (ID_Ref, ID_Tar(FK), ID_Cli(FK), Nom_Ref, Contenido, Date_Ref)
+
+Puntos (ID_Punt, ID_Cli(FK), ID_Reg(FK), ID_Tar(FK), Cant_Pun, Cont_Tot, Cont_Hist, ID_Rec(FK))
+
+Recompensas (ID_Rec, ID_Cli(FK), Nom_Rec, Det_Rec, Cant_Rec, Niv_Desbl, Est_Desbl)
+
+Estadísticas_Uso (ID_Estadística, ID_Cli(FK), Cant_Tar, Cant_Refl, Cant_Reg_Emo, Valoraciones)
+
+Analista (ID_Analista, Usu_Ana, Cont_Ana)
