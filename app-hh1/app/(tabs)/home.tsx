@@ -44,6 +44,14 @@ export default function HomeScreen() {
         <Text style={styles.botonTexto}>Nueva tarea</Text>
       </Sticker>
 
+      <Sticker
+        onPress={() => router.push('/tareas')}
+        color={Cafe.caramelo}
+        style={styles.boton}
+        contentStyle={styles.botonContenido}>
+        <Text style={styles.botonTexto}>Ver tareas</Text>
+      </Sticker>
+
       <Sticker onPress={() => router.replace('/')} style={styles.boton} contentStyle={styles.botonContenido}>
         <Text style={[styles.botonTexto, styles.botonSecundario]}>Cambiar mi ánimo</Text>
       </Sticker>

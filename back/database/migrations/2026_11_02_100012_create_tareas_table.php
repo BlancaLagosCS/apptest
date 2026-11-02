@@ -20,7 +20,12 @@ return new class extends Migration
             $table->dateTime('Inicio')->nullable();
             $table->dateTime('Deadline')->nullable();
             $table->unsignedTinyInteger('Dificultad')->default(1);
+            // Pendiente, Realizada o Eliminada (las eliminadas se conservan, no se borran)
+            $table->string('Est_Tar', 20)->default('Pendiente');
+            $table->dateTime('Fecha_Real')->nullable();
             $table->timestamps();
+
+            $table->index(['ID_Cli', 'Est_Tar']);
         });
     }
 

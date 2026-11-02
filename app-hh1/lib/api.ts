@@ -57,14 +57,35 @@ export type NuevaTarea = {
   Dificultad: Dificultad;
 };
 
+export type EstadoTarea = 'Pendiente' | 'Realizada' | 'Eliminada';
+
 export type Tarea = NuevaTarea & {
   ID_Tar: number;
   ID_Cli: number;
   ID_Reg_Emo: number | null;
   Hora_Reg: string;
+  Est_Tar: EstadoTarea;
+  /** Cuándo se marcó como realizada (Y-m-d H:i:s), o null. */
+  Fecha_Real: string | null;
 };
 
 export async function crearTarea(tarea: NuevaTarea): Promise<Tarea> {
   const { data } = await api.post<Tarea>('/tareas', tarea);
+  return data;
+}
+
+/** Pendientes ordenadas por deadline (las sin fecha al final). */
+export async function listarPendientes(): Promise<Tarea[]> {
+  const { data } = await api.get<Tarea[]>('/tareas', { params: { estado: 'Pendiente' } });
+  return data;
+}
+
+export async function listarRealizadasHoy(): Promise<Tarea[]> {
+  const { data } = await api.get<Tarea[]>('/tareas', { params: { estado: 'Realizada', fecha: 'hoy' } });
+  return data;
+}
+
+export async function cambiarEstadoTarea(id: number, estado: EstadoTarea): Promise<Tarea> {
+  const { data } = await api.patch<Tarea>(`/tareas/${id}/estado`, { Est_Tar: estado });
   return data;
 }

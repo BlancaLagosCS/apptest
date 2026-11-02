@@ -113,6 +113,77 @@ class TareasTest extends TestCase
         $this->deleteJson("/api/tareas/{$ajena->ID_Tar}")->assertNotFound();
 
         $this->deleteJson("/api/tareas/{$propia->ID_Tar}")->assertNoContent();
-        $this->assertDatabaseMissing('tareas', ['ID_Tar' => $propia->ID_Tar]);
+        // El registro se conserva marcado como Eliminada.
+        $this->assertDatabaseHas('tareas', ['ID_Tar' => $propia->ID_Tar, 'Est_Tar' => 'Eliminada']);
+    }
+
+    public function test_una_tarea_nueva_queda_pendiente(): void
+    {
+        $this->postJson('/api/tareas', ['Nom_Tar' => 'Leer', 'Dificultad' => 1])
+            ->assertCreated()
+            ->assertJson(['Est_Tar' => 'Pendiente', 'Fecha_Real' => null]);
+    }
+
+    public function test_marcar_realizada_guarda_la_fecha_de_realizacion(): void
+    {
+        Carbon::setTestNow('2026-11-02 16:20:00');
+        $tarea = $this->cliente->tareas()->create(['Nom_Tar' => 'Leer', 'Dificultad' => 1]);
+
+        $this->patchJson("/api/tareas/{$tarea->ID_Tar}/estado", ['Est_Tar' => 'Realizada'])
+            ->assertOk()
+            ->assertJson(['Est_Tar' => 'Realizada', 'Fecha_Real' => '2026-11-02 16:20:00']);
+    }
+
+    public function test_marcar_eliminada_la_oculta_de_todo(): void
+    {
+        $tarea = $this->cliente->tareas()->create(['Nom_Tar' => 'Leer', 'Dificultad' => 1]);
+
+        $this->patchJson("/api/tareas/{$tarea->ID_Tar}/estado", ['Est_Tar' => 'Eliminada'])->assertOk();
+
+        $this->assertDatabaseHas('tareas', ['ID_Tar' => $tarea->ID_Tar, 'Est_Tar' => 'Eliminada']);
+        $this->getJson('/api/tareas')->assertOk()->assertJsonCount(0);
+        $this->getJson("/api/tareas/{$tarea->ID_Tar}")->assertNotFound();
+        $this->patchJson("/api/tareas/{$tarea->ID_Tar}/estado", ['Est_Tar' => 'Realizada'])->assertNotFound();
+    }
+
+    public function test_rechaza_estados_invalidos(): void
+    {
+        $tarea = $this->cliente->tareas()->create(['Nom_Tar' => 'Leer', 'Dificultad' => 1]);
+
+        $this->patchJson("/api/tareas/{$tarea->ID_Tar}/estado", ['Est_Tar' => 'realizada'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('Est_Tar');
+    }
+
+    public function test_lista_pendientes_ordenadas_por_deadline(): void
+    {
+        $crear = fn (string $nombre, ?string $deadline, string $estado = 'Pendiente') => $this->cliente->tareas()
+            ->create(['Nom_Tar' => $nombre, 'Dificultad' => 1, 'Deadline' => $deadline, 'Est_Tar' => $estado]);
+
+        $crear('Sin fecha', null);
+        $crear('Viernes', '2026-11-06 10:00:00');
+        $crear('Martes', '2026-11-03 10:00:00');
+        $crear('Hecha', '2026-11-01 10:00:00', 'Realizada');
+        $crear('Borrada', '2026-11-01 10:00:00', 'Eliminada');
+
+        $nombres = $this->getJson('/api/tareas?estado=Pendiente')->assertOk()->json('*.Nom_Tar');
+
+        $this->assertSame(['Martes', 'Viernes', 'Sin fecha'], $nombres);
+    }
+
+    public function test_lista_solo_las_realizadas_hoy(): void
+    {
+        Carbon::setTestNow('2026-11-02 18:00:00');
+        $crear = fn (string $nombre, string $estado, ?string $fechaReal) => $this->cliente->tareas()
+            ->create(['Nom_Tar' => $nombre, 'Dificultad' => 1, 'Est_Tar' => $estado, 'Fecha_Real' => $fechaReal]);
+
+        $crear('Hoy temprano', 'Realizada', '2026-11-02 08:00:00');
+        $crear('Hoy tarde', 'Realizada', '2026-11-02 17:00:00');
+        $crear('Ayer', 'Realizada', '2026-11-01 20:00:00');
+        $crear('Pendiente', 'Pendiente', null);
+
+        $nombres = $this->getJson('/api/tareas?estado=Realizada&fecha=hoy')->assertOk()->json('*.Nom_Tar');
+
+        $this->assertSame(['Hoy tarde', 'Hoy temprano'], $nombres);
     }
 }

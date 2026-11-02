@@ -53,6 +53,7 @@ export default function RootLayout() {
         {/* Pantalla previa al landing: es la ruta inicial, aparece en cada apertura */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="tareas/index" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="tareas/nueva" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>

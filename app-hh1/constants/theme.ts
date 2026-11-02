@@ -15,6 +15,8 @@ export const Cafe = {
   espresso: '#5B3E2B',
   menta: '#A8D5BA',
   rubor: '#F4B6AE',
+  /** Contraste para fechas vencidas. */
+  burdeo: '#800020',
   /** Colores de taza para cada estado de ánimo (ID_Emo 1, 2 y 3). */
   animo: {
     mal: '#C9D6E3',

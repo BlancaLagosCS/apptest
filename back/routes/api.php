@@ -15,4 +15,5 @@ Route::get('/emociones', [EmocionController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/registro-emociones', [RegistroEmocionController::class, 'store']);
     Route::apiResource('tareas', TareaController::class);
+    Route::patch('/tareas/{tarea}/estado', [TareaController::class, 'estado']);
 });

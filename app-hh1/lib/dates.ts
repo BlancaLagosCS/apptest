@@ -14,6 +14,42 @@ export function aFechaApi(fecha: Date): string {
   );
 }
 
+/** Convierte "Y-m-d H:i:s" (hora local, como la devuelve Laravel) a Date. */
+export function desdeFechaApi(valor: string): Date {
+  const [fecha, hora = '00:00:00'] = valor.split(' ');
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  const [h, m, s] = hora.split(':').map(Number);
+  return new Date(anio, mes - 1, dia, h, m, s);
+}
+
+const MS_DIA = 24 * 60 * 60 * 1000;
+
+/**
+ * Texto de la fecha límite: "hoy", "mañana", "ayer" o DD/MM.
+ * vencida es true si el deadline ya pasó (incluye hoy con la hora pasada).
+ */
+export function etiquetaDeadline(deadline: string | null, ahora = new Date()): { texto: string; vencida: boolean } | null {
+  if (!deadline) {
+    return null;
+  }
+
+  const fecha = desdeFechaApi(deadline);
+  const diaFecha = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  const diaHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const diferencia = Math.round((diaFecha.getTime() - diaHoy.getTime()) / MS_DIA);
+
+  const texto =
+    diferencia === 0
+      ? 'hoy'
+      : diferencia === 1
+        ? 'mañana'
+        : diferencia === -1
+          ? 'ayer'
+          : `${dosDigitos(fecha.getDate())}/${dosDigitos(fecha.getMonth() + 1)}`;
+
+  return { texto, vencida: fecha.getTime() < ahora.getTime() };
+}
+
 /** Ej.: "mié 5 nov · 18:00" */
 export function formatearFecha(fecha: Date): string {
   return (

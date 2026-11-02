@@ -10,11 +10,35 @@ use Illuminate\Validation\Rule;
 
 class TareaController extends Controller
 {
+    /**
+     * Filtros opcionales: estado=Pendiente|Realizada y fecha=hoy (realizadas hoy).
+     * Las tareas eliminadas nunca se listan.
+     */
     public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            $request->user()->tareas()->latest('ID_Tar')->get()
-        );
+        $filtros = $request->validate([
+            'estado' => ['sometimes', Rule::in([Tarea::ESTADO_PENDIENTE, Tarea::ESTADO_REALIZADA])],
+            'fecha' => ['sometimes', Rule::in(['hoy'])],
+        ]);
+
+        $consulta = $request->user()->tareas()->where('Est_Tar', '!=', Tarea::ESTADO_ELIMINADA);
+
+        if (isset($filtros['estado'])) {
+            $consulta->where('Est_Tar', $filtros['estado']);
+        }
+
+        if (isset($filtros['fecha'])) {
+            $consulta->whereDate('Fecha_Real', today());
+        }
+
+        if (($filtros['estado'] ?? null) === Tarea::ESTADO_REALIZADA) {
+            $consulta->latest('Fecha_Real');
+        } else {
+            // Las de deadline más cercano primero; las sin fecha al final.
+            $consulta->orderByRaw('Deadline IS NULL')->orderBy('Deadline')->orderBy('ID_Tar');
+        }
+
+        return response()->json($consulta->get());
     }
 
     public function store(Request $request): JsonResponse
@@ -50,19 +74,39 @@ class TareaController extends Controller
         return response()->json($modelo);
     }
 
+    public function estado(Request $request, int $tarea): JsonResponse
+    {
+        $data = $request->validate([
+            'Est_Tar' => ['required', Rule::in(Tarea::ESTADOS)],
+        ], [
+            'Est_Tar.in' => 'El estado debe ser Pendiente, Realizada o Eliminada.',
+        ]);
+
+        $modelo = $this->buscar($request, $tarea);
+        $modelo->cambiarEstado($data['Est_Tar']);
+
+        return response()->json($modelo);
+    }
+
+    /**
+     * No borra el registro: lo marca como Eliminada.
+     */
     public function destroy(Request $request, int $tarea): JsonResponse
     {
-        $this->buscar($request, $tarea)->delete();
+        $this->buscar($request, $tarea)->cambiarEstado(Tarea::ESTADO_ELIMINADA);
 
         return response()->json(null, 204);
     }
 
     /**
-     * Solo se encuentran las tareas del cliente autenticado; las ajenas responden 404.
+     * Solo se encuentran las tareas del cliente autenticado que no estén eliminadas;
+     * el resto responde 404.
      */
     private function buscar(Request $request, int $id): Tarea
     {
-        return $request->user()->tareas()->findOrFail($id);
+        return $request->user()->tareas()
+            ->where('Est_Tar', '!=', Tarea::ESTADO_ELIMINADA)
+            ->findOrFail($id);
     }
 
     private function validar(Request $request, bool $parcial = false): array

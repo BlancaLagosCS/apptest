@@ -1,14 +1,13 @@
 import { isAxiosError } from 'axios';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BackButton } from '@/components/cafe/back-button';
 import { CelebrationToast } from '@/components/cafe/celebration-toast';
 import { CoffeeBeans } from '@/components/cafe/coffee-beans';
 import { DateField, estilosCampo } from '@/components/cafe/date-field';
 import { DifficultySlider } from '@/components/cafe/difficulty-slider';
+import { ScreenHeader, volver } from '@/components/cafe/screen-header';
 import { Sticker } from '@/components/cafe/sticker';
 import { Cafe, Tipografia } from '@/constants/theme';
 import { crearTarea, Dificultad } from '@/lib/api';
@@ -43,14 +42,6 @@ export default function NuevaTareaScreen() {
     setDeadline(null);
     setDificultad(1);
     setErrores({});
-  }
-
-  function volver() {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/home');
-    }
   }
 
   function cancelar() {
@@ -95,14 +86,7 @@ export default function NuevaTareaScreen() {
     <SafeAreaView style={styles.pantalla}>
       <CoffeeBeans />
 
-      <View style={styles.encabezado}>
-        <View style={styles.atras}>
-          <BackButton onPress={volver} />
-        </View>
-        <Text style={styles.titulo} accessibilityRole="header">
-          Ingreso de Tareas
-        </Text>
-      </View>
+      <ScreenHeader titulo="Ingreso de Tareas" />
 
       <ScrollView contentContainerStyle={styles.formulario} keyboardShouldPersistTaps="handled">
         <View>
@@ -182,24 +166,6 @@ const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
     backgroundColor: Cafe.crema,
-  },
-  encabezado: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    minHeight: 56,
-    justifyContent: 'center',
-  },
-  atras: {
-    position: 'absolute',
-    left: 20,
-    top: 8,
-    zIndex: 1,
-  },
-  titulo: {
-    fontFamily: Tipografia.titulo,
-    fontSize: 26,
-    color: Cafe.espresso,
-    textAlign: 'center',
   },
   formulario: {
     padding: 24,
